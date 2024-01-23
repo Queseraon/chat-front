@@ -19,4 +19,5 @@ export interface ChatUserInfo{
     token?:String;
     riRank?:number;
     riComment?:Array<Array<String>>;
+    login?:string;
 }
