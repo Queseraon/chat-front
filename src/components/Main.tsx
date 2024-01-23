@@ -1,6 +1,6 @@
 
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   MainContainer,
   Sidebar,
@@ -28,42 +28,45 @@ export const Main = () => {
   const user = JSON.parse(localStorage.getItem('user') || '');
   const [users, setUsers] = useState<User[]>([]);
   const [msgs, setMsgs] = useState<Msg[]>([]);
-  const publishMsg = ()=>{
-    console.log(client);
-    console.log(messageInputValue);
-    client.publish({
-      destination:`/publication/chat/${user.uiNum}`,
-      body:JSON.stringify({
-        cmiSenderUiNum : user.uiNum,
-        cmiMessage : messageInputValue
+  const client = useRef<any>({});
+  const init = () => {
+    client.current = new Client({
+      brokerURL: 'ws://localhost:8081/chat',
+      onConnect: () => {
+        client.current.subscribe(`/topic/enter-chat`, (data: any) => {
+          const tmpUsers = JSON.parse(data.body);
+          setUsers(tmpUsers);
+        });
+
+        client.current.subscribe(`/queue/chat/${user.uiNum}`, (data: any) => {
+          const msg = JSON.parse(data.body);
+          setMsgs(msgs => [...msgs, msg]);
+        });
+      },
+      onDisconnect: () => {
+
+      },
+      connectHeaders: {
+        Authorization: `Bearer ${user.token}`,
+        uiNum: user.uiNum
+      }
+    });
+    client.current.activate();
+  }
+
+  const publishMsg = () => {
+    client.current.publish({
+      destination: `/publication/chat/${user.uiNum}`,
+      body: JSON.stringify({
+        cmiSenderUiNum: user.uiNum,
+        cmiMessage: messageInputValue
       })
     });
     setMessageInputValue('');
   }
-  const client = new Client({
-    brokerURL: 'ws://localhost:8081/chat',
-    onConnect: () => {
-      client.subscribe(`/topic/enter-chat`, (data) => {
-        const tmpUsers = JSON.parse(data.body);
-        setUsers(tmpUsers);
-      });
-
-      client.subscribe(`/queue/chat/${user.uiNum}`, (data) => {
-        const tmpUsers = JSON.parse(data.body);
-        setUsers(tmpUsers);
-      });
-    },
-    onDisconnect: () => {
-
-    },
-    connectHeaders: {
-      Authorization: `Bearer ${user.token}`,
-      uiNum: user.uiNum
-    }
-  }); 
-  useEffect(() => {
-    client.activate();
-  })
+  useEffect(()=>{
+    init();
+  },[]);
   return (
     <div className="auth-wrapper">
       <div
@@ -111,28 +114,22 @@ export const Main = () => {
             <MessageList
               typingIndicator={<TypingIndicator content="Zoe is typing" />}
             >
+              {msgs.map((msg) => (
+                <Message
+                  model={{
+                    message: msg.cmiMessage,
+                    sentTime: msg.cmiSentTime,
+                    sender: msg.cmiSender,
+                    direction: user.uiNum === msg.cmiSenderUiNum ? "outgoing" : "incoming",
+                    position: "normal"
+                  }}
+                  avatarSpacer={user.uiNum === msg.cmiSenderUiNum}
+                >
+                  {user.uiNum === msg.cmiSenderUiNum ? '' : <Avatar src={require("./images/ram.png")} name="Zoe" />}
+                </Message>
+              ))}
+
               <MessageSeparator content="Saturday, 30 November 2019" />
-              
-              <Message
-                model={{
-                  message: "Hello my friend",
-                  sentTime: "15 mins ago",
-                  sender: "Patrik",
-                  direction: "outgoing",
-                  position: "last"
-                }}
-              />
-              <Message
-                model={{
-                  message: "Hello my friend",
-                  sentTime: "15 mins ago",
-                  sender: "Zoe",
-                  direction: "incoming",
-                  position: "last"
-                }}
-              >
-                <Avatar src={require("./images/ram.png")} name="Zoe" />
-              </Message>
             </MessageList>
             <MessageInput
               placeholder="Type message here"
