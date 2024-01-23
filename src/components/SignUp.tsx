@@ -1,11 +1,11 @@
 import { ChangeEvent, useState } from "react";
-import { ChatUserInfo } from "../types/ChatUserInfo.type";
+import { User } from "../types/User.type";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 export const SignUp = () => {
     const [error, setError] = useState(false);
-    const [chatUser, setChatUser] = useState<ChatUserInfo>({});
+    const [chatUser, setChatUser] = useState<User>({});
     const [errMsg, setErrMsg] = useState<string>('');
     const navigate = useNavigate();
     const join = () => {

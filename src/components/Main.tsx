@@ -20,16 +20,35 @@ import {
   MessageList
 } from "@chatscope/chat-ui-kit-react";
 import { Client } from "@stomp/stompjs";
-import { ChatUserInfo } from "../types/ChatUserInfo.type";
+import { User } from "../types/User.type";
+import { Message } from "../types/Message.type";
 
 export const Main = () => {
   const [messageInputValue, setMessageInputValue] = useState("");
   const user = JSON.parse(localStorage.getItem('user') || '');
-  const [users, setUsers] = useState<Array<ChatUserInfo>>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [msgs, setMsgs] = useState<Message[]>([]);
+  const publishMsg = ()=>{
+    console.log(client);
+    console.log(messageInputValue);
+    client.publish({
+      destination:`/publication/chat/${user.uiNum}`,
+      body:JSON.stringify({
+        cmiSenderUiNum : user.uiNum,
+        cmiMessage : messageInputValue
+      })
+    });
+    setMessageInputValue('');
+  }
   const client = new Client({
     brokerURL: 'ws://localhost:8081/chat',
     onConnect: () => {
       client.subscribe(`/topic/enter-chat`, (data) => {
+        const tmpUsers = JSON.parse(data.body);
+        setUsers(tmpUsers);
+      });
+
+      client.subscribe(`/queue/chat/${user.uiNum}`, (data) => {
         const tmpUsers = JSON.parse(data.body);
         setUsers(tmpUsers);
       });
@@ -93,98 +112,7 @@ export const Main = () => {
               typingIndicator={<TypingIndicator content="Zoe is typing" />}
             >
               <MessageSeparator content="Saturday, 30 November 2019" />
-
-              <Message
-                model={{
-                  message: "Hello my friend",
-                  sentTime: "15 mins ago",
-                  sender: "Zoe",
-                  direction: "incoming",
-                  position: "single"
-                }}
-              >
-                <Avatar src={require("./images/ram.png")} name="Zoe" />
-              </Message>
-
-              <Message
-                model={{
-                  message: "Hello my friend",
-                  sentTime: "15 mins ago",
-                  sender: "Patrik",
-                  direction: "outgoing",
-                  position: "single"
-                }}
-                avatarSpacer
-              />
-              <Message
-                model={{
-                  message: "Hello my friend",
-                  sentTime: "15 mins ago",
-                  sender: "Zoe",
-                  direction: "incoming",
-                  position: "first"
-                }}
-                avatarSpacer
-              />
-              <Message
-                model={{
-                  message: "Hello my friend",
-                  sentTime: "15 mins ago",
-                  sender: "Zoe",
-                  direction: "incoming",
-                  position: "normal"
-                }}
-                avatarSpacer
-              />
-              <Message
-                model={{
-                  message: "Hello my friend",
-                  sentTime: "15 mins ago",
-                  sender: "Zoe",
-                  direction: "incoming",
-                  position: "normal"
-                }}
-                avatarSpacer
-              />
-              <Message
-                model={{
-                  message: "Hello my friend",
-                  sentTime: "15 mins ago",
-                  sender: "Zoe",
-                  direction: "incoming",
-                  position: "last"
-                }}
-              >
-                <Avatar src={require("./images/ram.png")} name="Zoe" />
-              </Message>
-
-              <Message
-                model={{
-                  message: "Hello my friend",
-                  sentTime: "15 mins ago",
-                  sender: "Patrik",
-                  direction: "outgoing",
-                  position: "first"
-                }}
-              />
-              <Message
-                model={{
-                  message: "Hello my friend",
-                  sentTime: "15 mins ago",
-                  sender: "Patrik",
-                  direction: "outgoing",
-                  position: "normal"
-                }}
-              />
-              <Message
-                model={{
-                  message: "Hello my friend",
-                  sentTime: "15 mins ago",
-                  sender: "Patrik",
-                  direction: "outgoing",
-                  position: "normal"
-                }}
-              />
+              
               <Message
                 model={{
                   message: "Hello my friend",
@@ -193,17 +121,6 @@ export const Main = () => {
                   direction: "outgoing",
                   position: "last"
                 }}
-              />
-
-              <Message
-                model={{
-                  message: "Hello my friend",
-                  sentTime: "15 mins ago",
-                  sender: "Zoe",
-                  direction: "incoming",
-                  position: "first"
-                }}
-                avatarSpacer
               />
               <Message
                 model={{
@@ -221,7 +138,7 @@ export const Main = () => {
               placeholder="Type message here"
               value={messageInputValue}
               onChange={(val) => setMessageInputValue(val)}
-              onSend={() => setMessageInputValue("")}
+              onSend={publishMsg}
             />
           </ChatContainer>
 
