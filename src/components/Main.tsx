@@ -29,7 +29,7 @@ export const Main = () => {
   const client = new Client({
     brokerURL: 'ws://localhost:8081/chat',
     onConnect: () => {
-      client.subscribe(`/queue/chat`, (data) => {
+      client.subscribe(`/topic/enter-chat`, (data) => {
         const tmpUsers = JSON.parse(data.body);
         setUsers(tmpUsers);
       });
@@ -70,11 +70,8 @@ export const Main = () => {
                     name="Zone"
                     status={user.login ? 'available' : 'dnd'}
                   />
-                  <ConversationHeader.Content
-                  />
                 </Conversation>
               ))}
-
             </ConversationList>
           </Sidebar>
 
