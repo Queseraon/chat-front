@@ -20,26 +20,29 @@ import {
   MessageList
 } from "@chatscope/chat-ui-kit-react";
 import { Client } from "@stomp/stompjs";
+import { ChatUserInfo } from "../types/ChatUserInfo.type";
 
 export const Main = () => {
   const [messageInputValue, setMessageInputValue] = useState("");
-  const user = JSON.parse(localStorage.getItem('user')||'');
+  const user = JSON.parse(localStorage.getItem('user') || '');
+  const [users, setUsers] = useState<Array<ChatUserInfo>>([]);
   const client = new Client({
     brokerURL: 'ws://localhost:8081/chat',
-    onConnect: ()=>{
-      client.subscribe(`/queue/chat/${user.uiNum}`,(data)=>{
-        console.log(data);
+    onConnect: () => {
+      client.subscribe(`/queue/chat`, (data) => {
+        const tmpUsers = JSON.parse(data.body);
+        setUsers(tmpUsers);
       });
     },
-    onDisconnect: ()=>{
-      
+    onDisconnect: () => {
+
     },
-    connectHeaders:{
+    connectHeaders: {
       Authorization: `Bearer ${user.token}`,
-      uiNum : user.uiNum
+      uiNum: user.uiNum
     }
   });
-  useEffect(()=>{
+  useEffect(() => {
     client.activate();
   })
   return (
@@ -54,105 +57,24 @@ export const Main = () => {
           <Sidebar position="left" scrollable={false}>
             <Search placeholder="Search..." />
             <ConversationList>
-              <Conversation
-                name="Lilly"
-                lastSenderName="Lilly"
-                info="Yes i can do it for you"
-                style={{ justifyContent: "start" }}
-              >
-                <Avatar
-                  src={require("./images/ram.png")}
-                  name="Lilly"
-                  status="available"
-                />
-              </Conversation>
+              {users.map((user, idx) => (
+                <Conversation key={idx}
+                  name={user.uiName}
+                  lastSenderName={user.uiName}
+                  info="Hello !"
+                  style={{ justifyContent: "start" }}
+                >
 
-              <Conversation
-                name="Joe"
-                lastSenderName="Joe"
-                info="Yes i can do it for you"
-              >
-                <Avatar
-                  src={require("./images/ram.png")}
-                  name="Joe"
-                  status="dnd"
-                />
-              </Conversation>
+                  <Avatar
+                    src={require("./images/ram.png")}
+                    name="Zone"
+                    status={user.login ? 'available' : 'dnd'}
+                  />
+                  <ConversationHeader.Content
+                  />
+                </Conversation>
+              ))}
 
-              <Conversation
-                name="Emily"
-                lastSenderName="Emily"
-                info="Yes i can do it for you"
-                unreadCnt={3}
-              >
-                <Avatar
-                  src={require("./images/ram.png")}
-                  name="Emily"
-                  status="available"
-                />
-              </Conversation>
-
-              <Conversation
-                name="Kai"
-                lastSenderName="Kai"
-                info="Yes i can do it for you"
-                unreadDot
-              >
-                <Avatar
-                  src={require("./images/ram.png")}
-                  name="Kai"
-                  status="unavailable"
-                />
-              </Conversation>
-
-              <Conversation
-                name="Akane"
-                lastSenderName="Akane"
-                info="Yes i can do it for you"
-              >
-                <Avatar
-                  src={require("./images/ram.png")}
-                  name="Akane"
-                  status="eager"
-                />
-              </Conversation>
-
-              <Conversation
-                name="Eliot"
-                lastSenderName="Eliot"
-                info="Yes i can do it for you"
-              >
-                <Avatar
-                  src={require("./images/ram.png")}
-                  name="Eliot"
-                  status="away"
-                />
-              </Conversation>
-
-              <Conversation
-                name="Zoe"
-                lastSenderName="Zoe"
-                info="Yes i can do it for you"
-                active
-              >
-                <Avatar
-                  src={require("./images/ram.png")}
-                  name="Zoe"
-                  status="dnd"
-                />
-              </Conversation>
-
-              <Conversation
-                name="Patrik"
-                lastSenderName="Patrik"
-                info="Yes i can do it for you"
-              >
-                <Avatar
-                  src={require("./images/ram.png")}
-                  name="Patrik"
-                  status="invisible"
-                />
-              </Conversation>
             </ConversationList>
           </Sidebar>
 
@@ -343,4 +265,3 @@ export const Main = () => {
     </div>
   );
 }
-
