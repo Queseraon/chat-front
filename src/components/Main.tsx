@@ -29,6 +29,7 @@ export const Main = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const client = useRef<any>({});
+  const [opUser, setOpUser] = useState<User>(user);
   const init = () => {
     client.current = new Client({
       brokerURL: 'ws://localhost:8081/chat',
@@ -67,6 +68,7 @@ export const Main = () => {
   useEffect(()=>{
     init();
   },[]);
+  
   return (
     <div className="auth-wrapper">
       <div
@@ -85,6 +87,11 @@ export const Main = () => {
                   lastSenderName={user.uiName}
                   info="Hello !"
                   style={{ justifyContent: "start" }}
+                  onClick={()=>{
+                    client.current.subscribe(`/queue/chat/${user.uiNum}`);
+                    setMsgs([]);
+                    setOpUser(user);
+                  }}
                 >
 
                   <Avatar
@@ -102,7 +109,7 @@ export const Main = () => {
               <ConversationHeader.Back />
               <Avatar src={require("./images/ram.png")} name="Zoe" />
               <ConversationHeader.Content
-                userName="Zoe"
+                userName={opUser.uiName}
                 info="Active 10 mins ago"
               />
               <ConversationHeader.Actions>
