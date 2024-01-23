@@ -28,8 +28,8 @@ export const Main = () => {
   const user = JSON.parse(localStorage.getItem('user') || '');
   const [users, setUsers] = useState<User[]>([]);
   const [msgs, setMsgs] = useState<Msg[]>([]);
-  const client = useRef<any>({});
   const [opUser, setOpUser] = useState<User>(user);
+  const client = useRef<any>({});
   const init = () => {
     client.current = new Client({
       brokerURL: 'ws://localhost:8081/chat',
@@ -41,6 +41,7 @@ export const Main = () => {
 
         client.current.subscribe(`/queue/chat/${user.uiNum}`, (data: any) => {
           const msg = JSON.parse(data.body);
+          console.log(msg);
           setMsgs(msgs => [...msgs, msg]);
         });
       },
