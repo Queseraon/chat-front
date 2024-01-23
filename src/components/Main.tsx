@@ -41,7 +41,7 @@ export const Main = () => {
       Authorization: `Bearer ${user.token}`,
       uiNum: user.uiNum
     }
-  });
+  }); 
   useEffect(() => {
     client.activate();
   })
