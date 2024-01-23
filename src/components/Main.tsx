@@ -21,13 +21,13 @@ import {
 } from "@chatscope/chat-ui-kit-react";
 import { Client } from "@stomp/stompjs";
 import { User } from "../types/User.type";
-import { Message } from "../types/Message.type";
+import { Msg } from "../types/Msg.type";
 
 export const Main = () => {
   const [messageInputValue, setMessageInputValue] = useState("");
   const user = JSON.parse(localStorage.getItem('user') || '');
   const [users, setUsers] = useState<User[]>([]);
-  const [msgs, setMsgs] = useState<Message[]>([]);
+  const [msgs, setMsgs] = useState<Msg[]>([]);
   const publishMsg = ()=>{
     console.log(client);
     console.log(messageInputValue);

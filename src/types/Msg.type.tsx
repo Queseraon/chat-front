@@ -1,4 +1,4 @@
-export interface Message{
+export interface Msg{
 	cmiMessage?:string;
 	cmiSentTime?:string;
 	cmiReceivedTime?:string;
