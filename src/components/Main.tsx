@@ -41,7 +41,6 @@ export const Main = () => {
 
         client.current.subscribe(`/queue/chat/${user.uiNum}`, (data: any) => {
           const msg = JSON.parse(data.body);
-          console.log(msg);
           setMsgs(msgs => [...msgs, msg]);
         });
       },
@@ -58,7 +57,7 @@ export const Main = () => {
 
   const publishMsg = () => {
     client.current.publish({
-      destination: `/publication/chat/${user.uiNum}`,
+      destination: `/publication/chat/${opUser.uiNum}`,
       body: JSON.stringify({
         cmiSenderUiNum: user.uiNum,
         cmiMessage: messageInputValue
@@ -89,7 +88,10 @@ export const Main = () => {
                   info="Hello !"
                   style={{ justifyContent: "start" }}
                   onClick={()=>{
-                    client.current.subscribe(`/queue/chat/${user.uiNum}`);
+                    client.current.subscribe(`/queue/chat/${user.uiNum}`, (data: any) => {
+                      const msg = JSON.parse(data.body);
+                      setMsgs(msgs => [...msgs, msg]);
+                    });
                     setMsgs([]);
                     setOpUser(user);
                   }}
