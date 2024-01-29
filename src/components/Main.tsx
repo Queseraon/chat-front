@@ -29,6 +29,7 @@ export const Main = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [opUser, setOpUser] = useState<User>(user);
+  const [typing, setTyping] = useState<boolean>(false);
   const client = useRef<any>({});
   const init = () => {
     client.current = new Client({
@@ -94,6 +95,7 @@ export const Main = () => {
                     });
                     setMsgs([]);
                     setOpUser(user);
+                    console.log(user);
                   }}
                 >
 
@@ -122,10 +124,10 @@ export const Main = () => {
               </ConversationHeader.Actions>
             </ConversationHeader>
             <MessageList
-              typingIndicator={<TypingIndicator content="Zoe is typing" />}
+              typingIndicator={typing?<TypingIndicator content="Zoe is typing" />:''}
             >
-              {msgs.map((msg) => (
-                <Message
+              {msgs.map((msg, idx) => (
+                <Message key={idx}
                   model={{
                     message: msg.cmiMessage,
                     sentTime: msg.cmiSentTime,
@@ -144,7 +146,10 @@ export const Main = () => {
             <MessageInput
               placeholder="Type message here"
               value={messageInputValue}
-              onChange={(val) => setMessageInputValue(val)}
+              onChange={(val) => {
+                setMessageInputValue(val);
+                setTyping(val.length>0);
+              }}
               onSend={publishMsg}
             />
           </ChatContainer>
