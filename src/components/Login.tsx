@@ -29,7 +29,7 @@ export const Login = () => {
     console.log(chatUser);
   }
   const login = () => {
-    axios.post('http://localhost:8081/api/login', chatUser, {
+    axios.post(`${process.env.REACT_APP_HTTP_PROTOCOL}://${process.env.REACT_APP_HOST}/api/login`, chatUser, {
       headers: {
         'Content-Type': 'application/json;charset=UTF-8'
       }

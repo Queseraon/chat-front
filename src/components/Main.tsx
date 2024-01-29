@@ -22,18 +22,19 @@ import {
 import { Client } from "@stomp/stompjs";
 import { User } from "../types/User.type";
 import { Msg } from "../types/Msg.type";
+import axios from "axios";
 
 export const Main = () => {
   const [messageInputValue, setMessageInputValue] = useState("");
   const user = JSON.parse(localStorage.getItem('user') || '');
   const [users, setUsers] = useState<User[]>([]);
   const [msgs, setMsgs] = useState<Msg[]>([]);
-  const [opUser, setOpUser] = useState<User>(user);
+  const [opUser, setOpUser] = useState<User>(user); 
   const [typing, setTyping] = useState<boolean>(false);
   const client = useRef<any>({});
   const init = () => {
     client.current = new Client({
-      brokerURL: 'ws://localhost:8081/chat',
+      brokerURL: `${process.env.REACT_APP_WS_PROTOCOL}://${process.env.REACT_APP_HOST}/chat`,
       onConnect: () => {
         client.current.subscribe(`/topic/enter-chat`, (data: any) => {
           const tmpUsers = JSON.parse(data.body);
@@ -56,12 +57,30 @@ export const Main = () => {
     client.current.activate();
   }
 
+  const getMessageInfos = async (opUiNum:number|undefined)=>{
+    const getMessageParam = {
+      cmiSenderUiNum: user.uiNum,
+      cmiReceiveUiNum: opUiNum
+    }
+    await axios.post(`${process.env.REACT_APP_HTTP_PROTOCOL}://${process.env.REACT_APP_HOST}/chat/message-infos`,
+    getMessageParam,{
+      headers: {
+        'Content-Type' : 'application/json;charset=UTF-8'
+      }}
+    ).then(res=>{
+      res.data.map((message:any)=>{
+        setMsgs(msgs => [...msgs, message]);
+      })
+    });
+  }
+
   const publishMsg = () => {
     client.current.publish({
       destination: `/publication/chat/${opUser.uiNum}`,
       body: JSON.stringify({
         cmiSenderUiNum: user.uiNum,
-        cmiMessage: messageInputValue
+        cmiMessage: messageInputValue,
+        cmiReceiveUiNum: opUser.uiNum
       })
     });
     setMessageInputValue('');
@@ -95,7 +114,7 @@ export const Main = () => {
                     });
                     setMsgs([]);
                     setOpUser(user);
-                    console.log(user);
+                    getMessageInfos(user.uiNum);
                   }}
                 >
 
@@ -115,7 +134,7 @@ export const Main = () => {
               <Avatar src={require("./images/ram.png")} name="Zoe" />
               <ConversationHeader.Content
                 userName={opUser.uiName}
-                info="Active 10 mins ago"
+                info={opUser.loginDate}
               />
               <ConversationHeader.Actions>
                 <VoiceCallButton />
